@@ -1,6 +1,6 @@
 {
   "name": "wr-server-cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "/dist/index.js",
   "scripts": {
@@ -17,14 +17,16 @@
     "commander": "^12.1.0",
     "dayjs": "^1.11.12",
     "execa": "^9.3.0",
-    "inquirer": "^10.1.0",
-    "minimist": "^1.2.8",
     "node-ssh": "^13.2.0",
     "ora": "^8.0.1",
     "yoctocolors": "^2.1.1"
   },
   "engines": {
     "node": ">=14.15.0 <18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/woicw/wr-server.git"
   },
   "files": [
     "bin",
