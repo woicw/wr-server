@@ -1,0 +1,42 @@
+{
+  "name": "wr-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "/dist/index.js",
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup"
+  },
+  "bin": {
+    "wr-server": "./bin/index.js"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@clack/prompts": "^0.7.0",
+    "archiver": "^7.0.1",
+    "commander": "^12.1.0",
+    "dayjs": "^1.11.12",
+    "execa": "^9.3.0",
+    "inquirer": "^10.1.0",
+    "minimist": "^1.2.8",
+    "node-ssh": "^13.2.0",
+    "ora": "^8.0.1",
+    "yoctocolors": "^2.1.1"
+  },
+  "engines": {
+    "node": ">=14.15.0 <18.0.0"
+  },
+  "files": [
+    "bin",
+    "dist"
+  ],
+  "author": "woic",
+  "license": "MIT",
+  "type": "module",
+  "devDependencies": {
+    "@types/archiver": "^6.0.2",
+    "@types/node": "^20.14.11",
+    "tsup": "^8.2.1",
+    "typescript": "^5.5.3"
+  }
+}
