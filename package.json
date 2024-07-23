@@ -1,5 +1,5 @@
 {
-  "name": "wr-server",
+  "name": "wr-server-cli",
   "version": "1.0.0",
   "description": "",
   "main": "/dist/index.js",
@@ -30,6 +30,9 @@
     "bin",
     "dist"
   ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
   "author": "woic",
   "license": "MIT",
   "type": "module",
