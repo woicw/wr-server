@@ -242,7 +242,7 @@ const disconnectSSH = () => {
 };
 
 // 创建任务列表
-const createTaskList = (config: EnvConfig) => {
+const createTaskList = (config: EnvConfig, local?: boolean) => {
   const {
     script,
     bakDir,
@@ -251,7 +251,7 @@ const createTaskList = (config: EnvConfig) => {
   } = config;
 
   taskList = [];
-  script && taskList.push(execBuild);
+  !local && script && taskList.push(execBuild);
   taskList.push(buildZip);
   taskList.push(connectSSH);
   taskList.push(uploadLocalFile);
@@ -272,7 +272,7 @@ const executeTaskList = async (config: any) => {
   }
 };
 
-export const deploy = async (env: string) => {
+export const deploy = async (env: string, local?: boolean) => {
   const hasFile = await hasFileOrDir(getDeployConfigFilePath());
 
   if (hasFile) {
@@ -305,7 +305,7 @@ export const deploy = async (env: string) => {
       });
 
       if (answer) {
-        createTaskList(envConfig);
+        createTaskList(envConfig, local);
 
         await executeTaskList(envConfig);
 
