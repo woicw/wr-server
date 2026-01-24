@@ -16,3 +16,4 @@ node_modules
 # IDE - VSCode
 .vscode/*
 dist
+.claude
