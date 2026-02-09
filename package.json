@@ -1,16 +1,35 @@
 {
   "name": "wr-server-cli",
-  "version": "1.0.3",
-  "description": "",
-  "main": "/dist/index.js",
-  "scripts": {
-    "dev": "tsup --watch",
-    "build": "tsup"
+  "version": "1.1.0",
+  "description": "SSH 连接服务器自动部署 CLI 工具",
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.mts"
+    }
   },
   "bin": {
     "wr-server": "./bin/index.js"
   },
-  "keywords": [],
+  "scripts": {
+    "dev": "tsdown --watch",
+    "build": "tsdown"
+  },
+  "files": [
+    "bin",
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "deploy",
+    "ssh",
+    "cli"
+  ],
   "dependencies": {
     "@clack/prompts": "^0.7.0",
     "archiver": "^7.0.1",
@@ -21,27 +40,19 @@
     "ora": "^8.0.1",
     "yoctocolors": "^2.1.1"
   },
-  "engines": {
-    "node": ">=20.0.0"
+  "devDependencies": {
+    "@types/archiver": "^6.0.2",
+    "@types/node": "^20.14.11",
+    "tsdown": "^0.20.3",
+    "typescript": "^5.5.3"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/woicw/wr-server.git"
   },
-  "files": [
-    "bin",
-    "dist"
-  ],
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
   "author": "woic",
-  "license": "MIT",
-  "type": "module",
-  "devDependencies": {
-    "@types/archiver": "^6.0.2",
-    "@types/node": "^20.14.11",
-    "tsup": "^8.2.1",
-    "typescript": "^5.5.3"
-  }
+  "license": "MIT"
 }

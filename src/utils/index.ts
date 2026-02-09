@@ -1,63 +1,49 @@
 import * as colors from "yoctocolors";
-import {
-  access,
-  constants,
-  readdir,
-  rmdir,
-  stat,
-  unlink,
-} from "node:fs/promises";
+import { access, constants, rm } from "node:fs/promises";
 import ora from "ora";
 import path from "node:path";
 
-export const hasFileOrDir = async (path: string) => {
+/** 检查文件/目录是否存在 */
+export const hasFileOrDir = async (filePath: string) => {
   try {
-    await access(path, constants.R_OK | constants.W_OK);
+    await access(filePath, constants.R_OK | constants.W_OK);
     return true;
   } catch {
     return false;
   }
 };
 
-export const remove = async (path: string) => {
-  if (await hasFileOrDir(path)) {
-    const files = await readdir(path);
-    for (const file of files) {
-      const curPath = path + "/" + file;
-      if ((await stat(curPath)).isDirectory()) {
-        await remove(curPath);
-      } else {
-        await unlink(curPath);
-      }
-    }
-
-    await rmdir(path);
+/** 递归删除文件/目录（跨平台兼容） */
+export const remove = async (targetPath: string) => {
+  if (await hasFileOrDir(targetPath)) {
+    await rm(targetPath, { recursive: true, force: true });
   }
 };
-export const getDeployConfigFileName = () => {
-  return `deploy.config.mjs`;
-};
 
-export const getDeployConfigFilePath = () => {
-  return `${path.join(process.cwd())}/${getDeployConfigFileName()}`;
-};
-// 日志信息
+export const getDeployConfigFileName = () => "deploy.config.mjs";
+
+export const getDeployConfigFilePath = () =>
+  path.join(process.cwd(), getDeployConfigFileName());
+
+/** 日志信息 */
 export const log = (message: string) => {
   console.log(message);
 };
-// 成功信息
+
+/** 成功信息 */
 export const succeed = (message: string) => {
   ora().succeed(colors.greenBright(message));
 };
-// 提示信息
+
+/** 提示信息 */
 export const info = (message: string) => {
   ora().info(colors.blueBright(message));
 };
-// 错误信息
+
+/** 错误信息 */
 export const error = (message: string) => {
   ora().fail(colors.redBright(message));
 };
-// 下划线重点信息
-export const underline = (message: string) => {
-  return colors.underline(message);
-};
+
+/** 下划线重点信息 */
+export const underline = (message: string) => colors.underline(message);

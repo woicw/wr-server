@@ -3,7 +3,7 @@ import { deploy } from "./commands/deploy";
 
 const program = new Command();
 
-program.version("1.0.0");
+program.version("1.1.0");
 
 program
   .command("deploy")
