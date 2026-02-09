@@ -2,7 +2,7 @@
 
 前端项目一键部署到服务器的 CLI 工具，通过 SSH 连接远程服务器，自动完成打包、压缩、上传、备份、解压全流程。
 
-支持 Windows / macOS / Linux。
+支持 Windows / macOS / Linux，兼容交互式终端与非交互环境（CI/CD、AI 助手）。
 
 ## 安装
 
@@ -66,12 +66,26 @@ wr-server deploy -m prod  # 部署到生产环境
 wr-server deploy -m qa --local
 ```
 
+## 命令参数
+
+```
+wr-server deploy [options]
+```
+
+| 参数 | 说明 |
+|------|------|
+| `-m, --mode <env>` | 指定部署环境，如 `dev` / `qa` / `prod` |
+| `--local` | 跳过本地打包，直接使用已有产物 |
+| `--auto` | 自动模式，跳过所有交互确认 |
+
 ## 配置说明
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|:----:|------|
 | `projectName` | `string` | 是 | 项目名称 |
 | `readyTimeout` | `number` | 否 | SSH 连接超时时间（毫秒） |
+
+环境名称为配置对象的 key，不限于 `dev` / `qa` / `prod`，可自由定义。
 
 ### 环境配置（EnvConfig）
 
@@ -93,9 +107,9 @@ wr-server deploy -m qa --local
 
 支持两种方式提供服务器密码：
 
-**方式一：环境变量（推荐用于 CI/CD ，AI 助手部署）**
+**方式一：环境变量（推荐）**
 
-设置环境变量 `WR_SERVER_CODE_<ENV>`，env 为大写环境名：
+设置 `WR_SERVER_CODE_<ENV>`，`<ENV>` 为大写环境名：
 
 ```bash
 # Linux / macOS
@@ -104,11 +118,36 @@ export WR_SERVER_CODE_PROD=your_password
 
 # Windows PowerShell
 $env:WR_SERVER_CODE_QA="your_password"
+
+# Windows CMD
+set WR_SERVER_CODE_QA=your_password
 ```
 
 **方式二：交互输入**
 
 未设置环境变量时，部署过程中会交互式提示输入密码。
+
+> 自动模式下必须通过环境变量提供密码，否则将报错退出。
+
+## 自动模式
+
+适用于 CI/CD 流水线和 AI 助手等非交互环境。以下任一条件触发：
+
+- 传入 `--auto` 参数
+- 运行环境无 TTY（自动检测）
+
+自动模式下：
+- 跳过部署确认交互
+- 密码必须通过环境变量提供
+
+```bash
+# CI/CD 示例
+export WR_SERVER_CODE_QA=your_password
+wr-server deploy -m qa --auto
+
+# AI 助手调用（非 TTY 环境自动识别，--auto 可省略）
+wr-server deploy -m qa
+```
 
 ## 部署流程
 

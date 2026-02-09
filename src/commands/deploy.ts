@@ -37,8 +37,12 @@ interface EnvConfig {
 interface DeployConfig {
   projectName: string;
   readyTimeout: number;
-  auto: boolean;
-  [env: string]: EnvConfig | string | number | boolean;
+  [env: string]: EnvConfig | string | number;
+}
+
+interface DeployOptions {
+  local?: boolean;
+  auto?: boolean;
 }
 
 type TaskFn = (config: EnvConfig, index: number) => Promise<void> | void;
@@ -47,8 +51,18 @@ const ssh = new NodeSSH();
 
 /** 当前部署环境名 */
 let currentEnv = "";
-/** 是否自动模式（跳过交互确认） */
+
+/**
+ * 是否自动模式（跳过所有交互式 prompt）
+ * 触发条件（任一满足）：
+ * 1. 配置文件 auto: true
+ * 2. CLI 传入 --auto
+ * 3. 非 TTY 环境（CI / AI agent）
+ */
 let autoMode = false;
+
+/** 判断是否处于交互式终端 */
+const isInteractive = () => process.stdin.isTTY === true;
 
 /** 检查环境配置 */
 const checkEnvCorrect = (config: DeployConfig, env: string) => {
@@ -127,7 +141,7 @@ const buildZip = async (config: EnvConfig, index: number) => {
   });
 };
 
-/** 连接 SSH（优先读取环境变量 WR_SERVER_CODE_<ENV>） */
+/** 连接 SSH（优先环境变量 → 自动模式要求环境变量 → 交互输入） */
 const connectSSH = async (config: EnvConfig, index: number) => {
   try {
     log(`(${index}) ssh 连接 ${underline(config.host)}`);
@@ -139,7 +153,10 @@ const connectSSH = async (config: EnvConfig, index: number) => {
       config.password = envPassword;
       succeed(`已从环境变量 ${underline(envKey)} 读取密码`);
     } else if (autoMode) {
-      error(`自动模式下未找到环境变量 ${underline(envKey)}，请先设置密码环境变量`);
+      error(
+        `自动模式下未找到环境变量 ${underline(envKey)}，请先设置：\n` +
+          `  export ${envKey}=your_password`
+      );
       process.exit(1);
     } else {
       const answer = await psword({ message: "请输入服务器密码" });
@@ -180,7 +197,6 @@ const backupRemoteFile = async (config: EnvConfig, index: number) => {
   try {
     const { webDir, bakDir } = config;
     const dirName = webDir.split("/").at(-1);
-    // 使用下划线替代冒号，兼容 Windows 文件系统
     const zipFileName = `${dirName}_${dayjs().format("YYYY-MM-DD_HH-mm-ss")}.zip`;
 
     log(`(${index}) 备份远程文件 ${underline(webDir)}`);
@@ -269,7 +285,7 @@ const executeTaskList = async (tasks: TaskFn[], config: EnvConfig) => {
   }
 };
 
-export const deploy = async (env: string, local?: boolean) => {
+export const deploy = async (env: string, opts: DeployOptions = {}) => {
   const configPath = getDeployConfigFilePath();
   const hasFile = await hasFileOrDir(configPath);
 
@@ -288,7 +304,13 @@ export const deploy = async (env: string, local?: boolean) => {
   }
 
   currentEnv = env;
-  autoMode = config.auto ?? false;
+  // --auto 参数或非 TTY 环境（CI / AI agent）触发自动模式
+  autoMode = opts.auto || !isInteractive();
+
+  if (autoMode) {
+    log("[自动模式] 跳过交互式确认");
+  }
+
   checkEnvCorrect(config, env);
 
   const envConfig: EnvConfig = {
@@ -312,7 +334,7 @@ export const deploy = async (env: string, local?: boolean) => {
     }
   }
 
-  const tasks = createTaskList(envConfig, local);
+  const tasks = createTaskList(envConfig, opts.local);
   await executeTaskList(tasks, envConfig);
 
   const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
