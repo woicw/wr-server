@@ -37,7 +37,8 @@ interface EnvConfig {
 interface DeployConfig {
   projectName: string;
   readyTimeout: number;
-  [env: string]: EnvConfig | string | number;
+  auto: boolean;
+  [env: string]: EnvConfig | string | number | boolean;
 }
 
 type TaskFn = (config: EnvConfig, index: number) => Promise<void> | void;
@@ -46,6 +47,8 @@ const ssh = new NodeSSH();
 
 /** 当前部署环境名 */
 let currentEnv = "";
+/** 是否自动模式（跳过交互确认） */
+let autoMode = false;
 
 /** 检查环境配置 */
 const checkEnvCorrect = (config: DeployConfig, env: string) => {
@@ -135,6 +138,9 @@ const connectSSH = async (config: EnvConfig, index: number) => {
     if (envPassword) {
       config.password = envPassword;
       succeed(`已从环境变量 ${underline(envKey)} 读取密码`);
+    } else if (autoMode) {
+      error(`自动模式下未找到环境变量 ${underline(envKey)}，请先设置密码环境变量`);
+      process.exit(1);
     } else {
       const answer = await psword({ message: "请输入服务器密码" });
       config.password = answer as string;
@@ -282,6 +288,7 @@ export const deploy = async (env: string, local?: boolean) => {
   }
 
   currentEnv = env;
+  autoMode = config.auto ?? false;
   checkEnvCorrect(config, env);
 
   const envConfig: EnvConfig = {
@@ -296,12 +303,13 @@ export const deploy = async (env: string, local?: boolean) => {
   ]);
   console.log("当前分支：", branch);
 
-  const answer = await confirm({
-    message: `是否将 ${underline(projectName)} 项目 ${colors.greenBright(branch)} 分支部署到 ${underline(envConfig.name)}?`,
-  });
-
-  if (!answer) {
-    process.exit(1);
+  if (!autoMode) {
+    const answer = await confirm({
+      message: `是否将 ${underline(projectName)} 项目 ${colors.greenBright(branch)} 分支部署到 ${underline(envConfig.name)}?`,
+    });
+    if (!answer) {
+      process.exit(1);
+    }
   }
 
   const tasks = createTaskList(envConfig, local);
